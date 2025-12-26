@@ -1,7 +1,7 @@
 {
   "name": "user-service",
   "version": "1.0.0",
-  "description": "A Node.js/Express user service for authentication, profile management, and user-related operations.",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --env-file=.env src/index.ts",
@@ -9,21 +9,10 @@
     "start": "pnpm build && node --env-file=.env dist/index.js",
     "lint": "eslint . --ext .ts"
   },
-  "keywords": [
-    "user",
-    "auth",
-    "authentication",
-    "express",
-    "typescript",
-    "mongodb",
-    "service"
-  ],
-  "author": "Your Name",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/user-service.git"
-  },
+  "packageManager": "pnpm@10.18.3",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",

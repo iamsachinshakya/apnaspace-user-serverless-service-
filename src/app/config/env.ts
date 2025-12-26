@@ -21,14 +21,13 @@ const envSchema = z.object({
     REFRESH_TOKEN_SECRET: z.string().min(8, "REFRESH_TOKEN_SECRET must be at least 8 characters"),
     REFRESH_TOKEN_EXPIRY: z.string(),
 
-    // Logging
-    LOG_LEVEL: z.enum(LogLevel).default(LogLevel.DEBUG),
-
     // Optional integrations
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
-    REDIS_URL: z.string().optional(),
+
+    // Logging
+    LOG_LEVEL: z.enum(LogLevel).default(LogLevel.DEBUG),
 });
 
 const parsed = envSchema.safeParse(process.env);
