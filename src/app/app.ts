@@ -31,7 +31,7 @@ app.use(cookieParser());
  * Health check
  */
 app.get("/", (_req: Request, res: Response) => {
-    ApiResponse.success(res, "🚀 Express server running!");
+    ApiResponse.success(res, "🚀 User Express server running!");
 });
 
 /**
