@@ -117,65 +117,126 @@ export class UserService implements IUserService {
   }
 
   /* -------------------------------------------------------------------------- */
-  /*                               FOLLOW USER                                    */
+  /*                               FOLLOW USER                                   */
   /* -------------------------------------------------------------------------- */
-  async followUser(userId: string, targetUserId: string): Promise<boolean> {
+  async followUser(
+    userId: string,
+    targetUserId: string
+  ): Promise<boolean> {
     if (userId === targetUserId) {
-      throw new ApiError("You cannot follow yourself", 400, ErrorCode.BAD_REQUEST);
+      throw new ApiError(
+        "You cannot follow yourself",
+        400,
+        ErrorCode.BAD_REQUEST
+      );
     }
 
-    // Ensure both users exist
     const [user, targetUser] = await Promise.all([
       this.userRepository.findById(userId),
-      this.userRepository.findById(targetUserId)
+      this.userRepository.findById(targetUserId),
     ]);
 
     if (!user) {
-      throw new ApiError("User not found", 404, ErrorCode.USER_NOT_FOUND);
+      throw new ApiError(
+        "User not found",
+        404,
+        ErrorCode.USER_NOT_FOUND
+      );
     }
+
     if (!targetUser) {
-      throw new ApiError("Target user not found", 404, ErrorCode.USER_NOT_FOUND);
+      throw new ApiError(
+        "Target user not found",
+        404,
+        ErrorCode.USER_NOT_FOUND
+      );
     }
 
-    // Check if already following
-    const alreadyFollowing = await this.userRepository.isFollowing(userId, targetUserId);
+    const alreadyFollowing =
+      await this.userRepository.isFollowing(userId, targetUserId);
+
     if (alreadyFollowing) {
-      throw new ApiError("Already following this user", 409, ErrorCode.BAD_REQUEST);
+      throw new ApiError(
+        "Already following this user",
+        409,
+        ErrorCode.CONFLICT
+      );
     }
 
-    // Add follower and following
-    const [addedFollower, addedFollowing] = await Promise.all([
-      this.userRepository.addFollower(targetUserId, userId),
-      this.userRepository.addFollowing(userId, targetUserId)
-    ]);
+    const success = await this.userRepository.followUser(
+      userId,
+      targetUserId
+    );
 
-    if (!addedFollower || !addedFollowing) {
-      throw new ApiError("Failed to follow user", 500, ErrorCode.BAD_REQUEST);
+    if (!success) {
+      throw new ApiError(
+        "Failed to follow user",
+        500,
+        ErrorCode.INTERNAL_SERVER_ERROR
+      );
     }
 
     return true;
   }
 
-
   /* -------------------------------------------------------------------------- */
-  /*                               UNFOLLOW USER                                  */
+  /*                               UNFOLLOW USER                                 */
   /* -------------------------------------------------------------------------- */
-  async unfollowUser(userId: string, targetUserId: string): Promise<boolean> {
-    if (userId === targetUserId) throw new ApiError("You cannot unfollow yourself", 400, ErrorCode.BAD_REQUEST);
+  async unfollowUser(
+    userId: string,
+    targetUserId: string
+  ): Promise<boolean> {
+    if (userId === targetUserId) {
+      throw new ApiError(
+        "You cannot unfollow yourself",
+        400,
+        ErrorCode.BAD_REQUEST
+      );
+    }
 
     const [user, targetUser] = await Promise.all([
       this.userRepository.findById(userId),
-      this.userRepository.findById(targetUserId)
+      this.userRepository.findById(targetUserId),
     ]);
 
-    if (!user) throw new ApiError("User not found", 404, ErrorCode.USER_NOT_FOUND);
-    if (!targetUser) throw new ApiError("Target user not found", 404, ErrorCode.USER_NOT_FOUND);
+    if (!user) {
+      throw new ApiError(
+        "User not found",
+        404,
+        ErrorCode.USER_NOT_FOUND
+      );
+    }
 
-    const removedFollower = await this.userRepository.removeFollower(targetUserId, userId);
-    const removedFollowing = await this.userRepository.removeFollowing(userId, targetUserId);
+    if (!targetUser) {
+      throw new ApiError(
+        "Target user not found",
+        404,
+        ErrorCode.USER_NOT_FOUND
+      );
+    }
 
-    if (!removedFollower || !removedFollowing) {
-      throw new ApiError("Failed to unfollow user", 500, ErrorCode.BAD_REQUEST);
+    const isFollowing =
+      await this.userRepository.isFollowing(userId, targetUserId);
+
+    if (!isFollowing) {
+      throw new ApiError(
+        "You are not following this user",
+        409,
+        ErrorCode.CONFLICT
+      );
+    }
+
+    const success = await this.userRepository.removeFollow(
+      userId,
+      targetUserId
+    );
+
+    if (!success) {
+      throw new ApiError(
+        "Failed to unfollow user",
+        500,
+        ErrorCode.INTERNAL_SERVER_ERROR
+      );
     }
 
     return true;

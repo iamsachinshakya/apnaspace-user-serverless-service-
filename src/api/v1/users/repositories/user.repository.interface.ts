@@ -49,36 +49,27 @@ export interface IUserRepository {
   deleteById(userId: string): Promise<boolean>;
 
   /**
-   * Add a follower to a user's follower list.
-   * @param targetUserId - ID of the user to be followed
-   * @param followerId - ID of the follower
-   * @returns True if successful, false otherwise
-   */
-  addFollower(targetUserId: string, followerId: string): Promise<boolean>;
-
-  /**
-   * Add a following relationship for a user.
-   * @param userId - ID of the user following
+   * Follow a user.
+   * @param userId - ID of the user who is performing the follow action
    * @param targetUserId - ID of the user being followed
-   * @returns True if successful, false otherwise
+   * @returns True if the follow operation succeeds, false otherwise
    */
-  addFollowing(userId: string, targetUserId: string): Promise<boolean>;
+  followUser(
+    userId: string,
+    targetUserId: string
+  ): Promise<boolean>;
 
   /**
-   * Remove a follower from a user's follower list.
-   * @param targetUserId - ID of the user being unfollowed
-   * @param followerId - ID of the follower to remove
-   * @returns True if successful, false otherwise
+   * Remove a follow relationship between two users.
+   * @param userId - ID of the user initiating the action
+   * @param targetUserId - ID of the other user in the relationship
+   * @returns True if the operation succeeds, false otherwise
    */
-  removeFollower(targetUserId: string, followerId: string): Promise<boolean>;
+  removeFollow(
+    userId: string,
+    targetUserId: string
+  ): Promise<boolean>;
 
-  /**
-   * Remove a following relationship for a user.
-   * @param userId - ID of the user
-   * @param targetUserId - ID of the user being unfollowed
-   * @returns True if successful, false otherwise
-   */
-  removeFollowing(userId: string, targetUserId: string): Promise<boolean>;
 
   /**
    * Get a list of followers for a user.

@@ -36,12 +36,12 @@ userRouter.get(
  * @desc    Get all users
  * @access  Private (Admin only)
  */
-userRouter.get(
-  "/",
-  authenticate,
-  authorize(PERMISSIONS.USER.READ_ALL),
-  asyncHandler(userController.getAll.bind(userController))
-);
+// userRouter.get(
+//   "/",
+//   authenticate,
+//   authorize(PERMISSIONS.USER.READ_ALL),
+//   asyncHandler(userController.getAll.bind(userController))
+// );
 
 /**
  * @route   GET /api/v1/users/:id
@@ -61,13 +61,13 @@ userRouter.get(
  * @desc    Delete user
  * @access  Private (Admin only)
  */
-userRouter.delete(
-  "/:id",
-  authenticate,
-  authorize(PERMISSIONS.USER.DELETE),
-  authorizeUserAction(),
-  asyncHandler(userController.delete.bind(userController))
-);
+// userRouter.delete(
+//   "/:id",
+//   authenticate,
+//   authorize(PERMISSIONS.USER.DELETE),
+//   authorizeUserAction(),
+//   asyncHandler(userController.delete.bind(userController))
+// );
 
 /**
  * @route   PATCH /api/v1/users/update-account
@@ -106,7 +106,6 @@ userRouter.patch(
 userRouter.post(
   "/follow/:targetUserId",
   authenticate,
-  authorize(PERMISSIONS.USER.UPDATE),
   asyncHandler(userController.followUser.bind(userController))
 );
 
@@ -118,9 +117,9 @@ userRouter.post(
 userRouter.delete(
   "/unfollow/:targetUserId",
   authenticate,
-  authorize(PERMISSIONS.USER.UPDATE),
   asyncHandler(userController.unfollowUser.bind(userController))
 );
+
 
 /**
  * @route   GET /api/v1/users/:id/followers

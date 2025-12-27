@@ -5,16 +5,24 @@ import { UserRole } from "../../auth/models/auth.entity";
 import { IAuthUser } from "../../auth/models/auth.dto";
 
 /**
- * Prevent self action middleware
- * - User CANNOT act on their own resource
- * - Admin can act on anyone
+ * Authorization middleware
+ *
+ * Rules:
+ * - User:
+ *   - CAN act on self
+ *   - CANNOT act on others
+ * - Admin:
+ *   - CAN act on others
+ *   - CANNOT DELETE self
  */
 export const authorizeUserAction =
     (message = "Action not allowed on yourself") =>
-        (req: Request, _res: Response, next: NextFunction) => {
-            const user = req.user as IAuthUser | null;
-            const targetUserId = req.params.id;
+        (req: Request, _res: Response, next: NextFunction): void => {
+            const user = req.user as IAuthUser | undefined;
+            const targetUserId = req.params?.id;
+            const method = req.method?.toUpperCase();
 
+            /* ---------- AUTH CHECK ---------- */
             if (!user) {
                 throw new ApiError(
                     "Unauthorized request",
@@ -23,7 +31,8 @@ export const authorizeUserAction =
                 );
             }
 
-            if (!targetUserId) {
+            /* ---------- INPUT VALIDATION ---------- */
+            if (!targetUserId || typeof targetUserId !== "string") {
                 throw new ApiError(
                     "Target user not specified",
                     400,
@@ -34,26 +43,28 @@ export const authorizeUserAction =
             const isSelf = user.id === targetUserId;
             const isAdmin = user.role === UserRole.ADMIN;
 
-            // Admin cannot act on itself
-            if (isAdmin && isSelf) {
-                throw new ApiError(
-                    message,
-                    403,
-                    ErrorCode.PERMISSION_DENIED
-                );
-            }
+            /* ---------- ADMIN RULES ---------- */
+            if (isAdmin) {
+                // Admin cannot delete itself
+                if (isSelf && method === "DELETE") {
+                    throw new ApiError(
+                        message,
+                        403,
+                        ErrorCode.PERMISSION_DENIED
+                    );
+                }
 
-            // Admin can act on others
-            if (isAdmin && !isSelf) {
+                // Admin allowed for all other cases
                 return next();
             }
 
-            // User can act on itself
-            if (!isAdmin && isSelf) {
+            /* ---------- USER RULES ---------- */
+            if (isSelf) {
+                // User can act on own resource
                 return next();
             }
 
-            // User acting on others
+            /* ---------- FALLBACK ---------- */
             throw new ApiError(
                 "You do not have permission to perform this action",
                 403,

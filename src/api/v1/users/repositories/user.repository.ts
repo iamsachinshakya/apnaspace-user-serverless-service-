@@ -143,36 +143,37 @@ export class UserRepository implements IUserRepository {
     }
 
     // ---------------- FOLLOW LOGIC ----------------
-    async addFollower(targetUserId: string, followerId: string): Promise<boolean> {
-        try {
-            const result = await User.findByIdAndUpdate(
-                targetUserId,
-                { $addToSet: { followers: followerId } },
-                { new: true }
-            );
-            return !!result;
-        } catch (error) {
-            logger.error(
-                "Error adding follower %s to user %s: %o",
-                followerId,
-                targetUserId,
-                error
-            );
-            return false;
-        }
-    }
+    async followUser(
+        userId: string,
+        targetUserId: string
+    ): Promise<boolean> {
+        const session = await User.startSession();
+        session.startTransaction();
 
-    async addFollowing(userId: string, targetUserId: string): Promise<boolean> {
         try {
-            const result = await User.findByIdAndUpdate(
+            // Add userId to targetUserId.followers
+            await User.findByIdAndUpdate(
+                targetUserId,
+                { $addToSet: { followers: userId } },
+                { session }
+            );
+
+            // Add targetUserId to userId.following
+            await User.findByIdAndUpdate(
                 userId,
                 { $addToSet: { following: targetUserId } },
-                { new: true }
+                { session }
             );
-            return !!result;
+
+            await session.commitTransaction();
+            session.endSession();
+            return true;
         } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+
             logger.error(
-                "Error adding following %s for user %s: %o",
+                "Error following user %s by %s: %o",
                 targetUserId,
                 userId,
                 error
@@ -181,43 +182,47 @@ export class UserRepository implements IUserRepository {
         }
     }
 
-    async removeFollower(targetUserId: string, followerId: string): Promise<boolean> {
-        try {
-            const result = await User.findByIdAndUpdate(
-                targetUserId,
-                { $pull: { followers: followerId } },
-                { new: true }
-            );
-            return !!result;
-        } catch (error) {
-            logger.error(
-                "Error removing follower %s from user %s: %o",
-                followerId,
-                targetUserId,
-                error
-            );
-            return false;
-        }
-    }
+    async removeFollow(
+        userId: string,
+        targetUserId: string
+    ): Promise<boolean> {
+        if (userId === targetUserId) return false;
 
-    async removeFollowing(userId: string, targetUserId: string): Promise<boolean> {
+        const session = await User.startSession();
+        session.startTransaction();
+
         try {
-            const result = await User.findByIdAndUpdate(
+            // Remove userId from targetUserId.followers
+            await User.findByIdAndUpdate(
+                targetUserId,
+                { $pull: { followers: userId } },
+                { session }
+            );
+
+            // Remove targetUserId from userId.following
+            await User.findByIdAndUpdate(
                 userId,
                 { $pull: { following: targetUserId } },
-                { new: true }
+                { session }
             );
-            return !!result;
+
+            await session.commitTransaction();
+            session.endSession();
+            return true;
         } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+
             logger.error(
-                "Error removing following %s for user %s: %o",
-                targetUserId,
+                "Error removing follow relationship between %s and %s: %o",
                 userId,
+                targetUserId,
                 error
             );
             return false;
         }
     }
+
 
     // ---------------- FOLLOWERS / FOLLOWING ----------------
     async findFollowers(userId: string): Promise<IFollowUser[]> {
