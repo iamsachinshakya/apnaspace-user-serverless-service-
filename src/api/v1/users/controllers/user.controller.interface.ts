@@ -9,6 +9,13 @@ export interface IUserController {
     getUserProfile(req: Request, res: Response): Promise<Response>;
 
     /**
+    * Get user profile by ID
+    * @route GET /api/v1/users/profile/:id
+    * @access Private (Admin only)
+    */
+    getCurrentUserProfile(req: Request, res: Response): Promise<Response>;
+
+    /**
      * Get all users
      * @route GET /api/v1/users
      * @access Private (Admin only)

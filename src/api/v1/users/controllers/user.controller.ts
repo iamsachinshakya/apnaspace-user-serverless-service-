@@ -13,6 +13,25 @@ import { IAuthUser } from "../../auth/models/auth.dto";
 export class UserController implements IUserController {
   constructor(private readonly userService: IUserService) { }
 
+
+  async getCurrentUserProfile(req: Request, res: Response): Promise<Response> {
+    const authUser = req.user as IAuthUser;
+    if (!authUser) throw new ApiError("Unauthorized", 401, ErrorCode.UNAUTHORIZED);
+
+    let profile = await this.userService.getUserProfile(authUser.id);
+
+    profile = {
+      ...profile,
+      role: authUser.role,
+      status: authUser.status,
+      isVerified: authUser.isVerified,
+      username: authUser.username,
+      email: authUser.email,
+    }
+
+    return ApiResponse.success(res, "User profile fetched successfully", profile);
+  }
+
   async getUserProfile(req: Request, res: Response): Promise<Response> {
     const { id } = req.params;
     const authUser = req.user as IAuthUser;

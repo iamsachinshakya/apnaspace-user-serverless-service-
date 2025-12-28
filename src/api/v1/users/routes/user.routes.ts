@@ -14,7 +14,7 @@ import { authorizeUserAction } from "../../permissions/middlewares/authorizeUser
 
 export const userRouter = Router();
 
-// Proper DI chain
+// DI chain
 const userRepository = new UserRepository();
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
@@ -32,16 +32,15 @@ userRouter.get(
 );
 
 /**
- * @route   GET /api/v1/users
+ * @route   GET /api/v1/users/me
  * @desc    Get all users
- * @access  Private (Admin only)
+ * @access  Private 
  */
-// userRouter.get(
-//   "/",
-//   authenticate,
-//   authorize(PERMISSIONS.USER.READ_ALL),
-//   asyncHandler(userController.getAll.bind(userController))
-// );
+userRouter.get(
+  "/me",
+  authenticate,
+  asyncHandler(userController.getCurrentUserProfile.bind(userController))
+);
 
 /**
  * @route   GET /api/v1/users/:id
@@ -55,19 +54,6 @@ userRouter.get(
   authorizeUserAction(),
   asyncHandler(userController.getById.bind(userController))
 );
-
-/**
- * @route   DELETE /api/v1/users/:id
- * @desc    Delete user
- * @access  Private (Admin only)
- */
-// userRouter.delete(
-//   "/:id",
-//   authenticate,
-//   authorize(PERMISSIONS.USER.DELETE),
-//   authorizeUserAction(),
-//   asyncHandler(userController.delete.bind(userController))
-// );
 
 /**
  * @route   PATCH /api/v1/users/update-account
