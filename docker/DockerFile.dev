@@ -1,0 +1,41 @@
+# --------------------------
+# 1. Builder Stage (Dev)
+# --------------------------
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Enable pnpm (pinned for reproducibility)
+RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+
+# Copy dependency manifests
+COPY package.json pnpm-lock.yaml ./
+
+# Install all dependencies (keep devDependencies!)
+RUN pnpm install --frozen-lockfile
+
+# Copy source files
+COPY tsconfig.json ./
+COPY src ./src
+
+# Optional: build TypeScript for dev environment
+RUN pnpm run build
+
+# --------------------------
+# 2. Dev Stage
+# --------------------------
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+
+# Copy everything from builder
+COPY --from=builder /app /app
+
+# Expose port
+EXPOSE 5000
+
+# Use ts-node-dev for development
+CMD ["pnpm", "run", "dev"]
